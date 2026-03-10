@@ -5,7 +5,7 @@ type Categorie=Classe
       public code:entier
       prive nom:chaine
 
-      //
+      //Les produits d'une categorie
       prive produits:TabProduit
       prive nbre:entier
 ## Methodes (fonctions ou procédures)
@@ -54,6 +54,12 @@ Debut
    Fsi
   retourner Faux
 Fin
+
+//Convertir un objet en chaine ==>Serialisation
+ public fonction toChaine():chaine
+  Debut 
+            retourner “Code :”+ this.code +” Nom: ” +this.getNom()
+  Fin
 
 
 FinClasse
@@ -138,9 +144,9 @@ public fonction getCatgorie():Categorie
     Fin
   //Setters est une procédure qui modifie la valeur de l’attribut privé
 public procedure setCategorie(D categorie:Categorie)
-Début
-       this.categorie←categorie
-Fin
+  Debut
+        this.categorie←categorie
+  Fin
 
 #### Metiers 
 public fonction calculMontant():reel
@@ -148,11 +154,15 @@ public fonction calculMontant():reel
     retourner  this.qteStock * this.prix
     Fin
 
+public fonction toChaine():chaine
+  Debut 
+            retourner (“Code :”, this.getCode(),” Libelle: ” ,this.getLibelle(),” Prix: ” ,this.getPrix(),” Qte Stock: ” ,this.getQteStock(),” Montant Stock: ” ,this.calculMontant(),
+            Categorie: ” ,this.categorie.getNom() )
+  Fin
+
  FinClasse
 
 
-
-  
 Classe Service
 const N=100
 type TabCategorie=tableau [1..N]Categorie
@@ -161,7 +171,7 @@ type TabProduit=tableau [1..N]Produit
 type CategorieService=Classe
 Debut
     prive categories:TabCategorie
-   prive nbreCat:entier
+    prive nbreCat:entier
 
    public CategorieService()
    Début
@@ -197,16 +207,17 @@ FinClasse
 
 
 
-type produitService=Classe
+type ProduitService=Classe
 Debut
+    
       prive produits:TabProduit
       prive nbre:entier
 
    public produitService()
-   Début
-     //Initialiser la valeur d’un attribut a la creation
-      this.nbre←0
-   Fin
+    Debut
+      //Initialiser la valeur d’un attribut a la creation
+        this.nbre←0
+    Fin
    
     public fonction getNbreProd():entier
     Debut
@@ -216,11 +227,11 @@ Debut
     public procedure getProduits(D/R cloneProduit:TabProduit)
     var  
     i:entier
-    Debut
-        pour(i<--1;i<=this.nbre;i<--i+1) faire
-        cloneProduit[i]<--this.produits[i]
-        Fpour
-    Fin
+      Debut
+          pour(i<--1;i<=this.nbre;i<--i+1) faire
+          cloneProduit[i]<--this.produits[i]
+          Fpour
+      Fin
 
     public fonction addProduit(D produit:Produit)
     var  
@@ -247,8 +258,8 @@ Début
      Début
     Fin
     public fonction saisieCategorie():Categorie
-                 var 
-                   categorie:Categorie
+        var 
+        categorie:Categorie
        code :entier  nom:chaine
    Début
         faire 
@@ -270,31 +281,82 @@ Début
       i:entier
 Debut 
      pour(i← 1;i<=nbre;i←i+1) faire
-        this.afficheUneCategorie(categories[i])
+        Ecrire(categories[i].toChaine())
      Fpour
 Fin
- prive procedure afficheUneCategorie(D cat:Categorie)
-Debut 
-           Ecrire(“Code :”, cat.code,” Nom: ” ,cat.getNom())
-Fin
+
 
 
 FinClasse
 
 
+type ProduitView=Classe
+Début
+      public ProduitView()
+     Début
+    Fin
+    public fonction saisieProduit(D categories:TabCategorie,nbreCat:entier):Produit
+        var 
+          produit:Produit
+           code :entier 
+           libelle:chaine
+           prix:reel
+           qteStock:entier
+           posCat,i:entier
+           categorie:Categorie
+   Début
+        faire 
+              Ecrire(“Entrer le code du Produit)
+               lire(code)
+         tantque(code<=0)
+         faire 
+              Ecrire(“Entrer le libelle  du Produit)
+             lire(libelle)
+         tantque(libelle=””)
+         faire 
+              Ecrire(“Entrer le prix du Produit)
+               lire(prix)
+         tantque(prix<=0)
+
+         faire 
+              Ecrire(“Entrer la QteStock du Produit)
+               lire(qteStock)
+         tantque(qteStock<=0)
+         faire
+            //Selectionner la categorie du Produit. 
+              pour(i<--1;i<=nbreCat;i<--i+1) faire
+                  //Dupliquer du code
+                  Ecrire(i,“-" + categories[i].toChaine())
+              Fpour
+              Ecrire("Selectionner un categorie")
+              lire(posCat)
+           tantque(posCat<0 ou posCat>nbreCat)
+           categorie<--categories[posCat]
+          produit←new Produit()
+          produit.setCode(code)
+          produit.setLibelle(libelle)
+          produit.setPrix(prix)
+          produit.setQteStock(qteStock)
+          //Assigner une categorie a un produit
+           //Produit --->Categorie
+             produit.setCategorie(categorie)
+           //Categorie-->Produit
+            categorie.addProduit(produit)
+      retourner  produit
+   Fin
+  
+ public procedure afficheLesProduits(D produits:TabProduit, nbre:entier)
+   var 
+      i:entier
+Debut 
+     pour(i← 1;i<=nbre;i←i+1) faire
+        Ecrire(produits[i].toChaine())
+     Fpour
+Fin
 
 
 
-
-
-
-
-
-
-
-
-
-
+FinClasse
 
 
 
@@ -309,11 +371,17 @@ Debut
      //Déclaration
       catView: CategorieView
       catService:CategorieService
+      produitView: ProduitView
+      produitService:ProduitService
       cat : Categorie  result:booleen
-     cloneCategories:TabCategorie
+      cloneCategories:TabCategorie
+      produit:Produit
+      cloneProduits:TabProduit
   Début
-      catView←new CategorieView()
+        catView←new CategorieView()
         catService←new catService()
+        produitView<--new ProduitView()
+        produitService<--new ProduitService()
        //1-Menu 
       //2-Saisie du choix 
       Cas Vaut (choix)
@@ -326,7 +394,22 @@ Debut
                 Ecrire (“Le Tableau est rempli”)
         Fsi
          2:  //Lister les  Catégories
-          catService.getCategories(cloneCategories)
+           catService.getCategories(cloneCategories)
            catView.afficheCategories(cloneCategories,catService.getNbreCat())
+
+         3:  //Creer un Produit
+              produit<-- produitView.saisieProduit(cloneCategories,catService.getNbreCat())
+              result← produitService.addProduit(produit)
+              si(result =Vrai) alors 
+                Ecrire (Produit ajoutée avec succès”)
+              sinon 
+                    Ecrire (“Le Tableau est rempli”)
+              Fsi
+
+           4:  //Lister les  Produits
+             produitService.getProduits(cloneProduits)
+            produitView.afficheLesProduits(cloneProduits,produitService.getNbreProd())
+        FinCas
+
  Fin
 FinClasse
